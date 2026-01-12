@@ -1,75 +1,90 @@
+ShreddR 🗑️
 
-# ShreddR 🗑️
+Forensic-Grade Secure File Deletion Utility
 
-A secure file deletion utility built with Java 25, Spring Boot and JavaFX. Permanently erases sensitive files by overwriting data patterns before deletion to reduce recoverability.
+ShreddR is a desktop application built with Java 17 LTS, Spring Boot, and JavaFX. It goes beyond standard file deletion by using multi-pass overwrite algorithms to ensure that sensitive data is permanently destroyed and unrecoverable by forensic tools.
 
-## Table of Contents
+🚀 Features
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Packaging](#packaging)
-- [Project Structure](#project-structure)
-- [Warning](#warning)
-- [License](#license)
+Phase 1: The Core Engine (Current Release)
 
-## Features
+Drag-and-Drop Interface: Easily select files or folders for destruction.
 
-- Multi-pass overwriting algorithms: Zeros, Ones, Random Data
-- Modern JavaFX GUI integrated with Spring Boot
-- Non-blocking I/O: long-running tasks run on background threads
-- Native packaging support for standalone installers
+Forensic Erasure: Implements a robust 3-pass overwrite strategy:
 
-## Tech Stack
+Pass 1: Overwrite with Zeros (0x00).
 
-- Java 25
-- Spring Boot 3.4
-- JavaFX 23
-- Maven
+Pass 2: Overwrite with Ones (0xFF).
 
-## Prerequisites
+Pass 3: Overwrite with Cryptographically Secure Pseudo-Random Numbers (CSPRNG).
 
-- JDK 23 or 25 installed and configured on `PATH`
-- Maven installed and added to `PATH`
+Metadata Obfuscation: Renames files to random UUIDs before unlinking to hide file names from filesystem logs.
 
-## Getting Started
+Non-Blocking I/O: Heavy operations run on background threads to keep the UI responsive.
 
-1. Clone the repository
-    git clone https://github.com/yourusername/shreddr.git
-    cd shreddr
+Phase 2: Secure System Cleaner (Roadmap)
 
-2. Build the project
-    mvn clean install
+Automated Cache Detection: Scans for sensitive cache files in:
 
-3. Run in development mode
-    mvn spring-boot:run
+Browsers: Chrome, Firefox, Edge (History, Cookies, Cache).
 
-Note: Ensure `pom.xml` configures JavaFX modules correctly for runtime.
+Dev Tools: VS Code, IntelliJ, Docker.
 
-## Packaging
+System: Windows Temp, Prefetch, Recycle Bin.
 
-Create a standalone installer (bundles a JRE so end-users don't need Java):
+Smart Locking: Detects if target applications are open to prevent file lock errors.
 
-- Use a JDK that provides `jpackage` (JDK 17+).
-- Build the package:
-    mvn package
+🛠️ Technology Stack
 
-Find the generated installer in `target/dist` or `target/jpackage` depending on plugin configuration.
+Language: Java 17 LTS (Selected for enterprise stability).
 
-## Project Structure
+Core Framework: Spring Boot 3.4.x (Dependency Injection & Service Management).
 
-`src/main/java/com/shreddr/`
-- `ShreddRApplication.java` — Entry point (JavaFX + Spring Boot)
-- `StageInitializer.java` — Loads UI on app start
-- `StageReadyEvent.java` — Custom event for Stage availability
-- `controller/`
-  - `MainController.java` — UI logic (Spring injected)
+GUI: JavaFX 21.x LTS.
 
-## Warning
+Monitoring: Sentry (Error tracking and performance monitoring).
 
-Files deleted with ShreddR are permanently destroyed and cannot be recovered. Use with extreme caution.
+Build Tool: Apache Maven.
 
-## License
+⚡ Getting Started
 
-MIT
+Prerequisites
+
+JDK 17 installed.
+
+Maven installed and added to PATH.
+
+Installation & Build
+
+Clone the repository
+
+git clone [https://github.com/yourusername/shreddr.git](https://github.com/yourusername/shreddr.git)
+cd shreddr
+
+
+Run in Development Mode
+
+mvn spring-boot:run
+
+
+Build Executable (.exe)
+To create a standalone installer that bundles the Java runtime:
+
+mvn package
+
+
+The output installer will be located in the target/ directory.
+
+⚠️ Data Destruction Warning
+
+Please Use With Caution.
+
+Files processed by ShreddR are permanently destroyed. Unlike the Windows Recycle Bin, there is no "Restore" function. Once the shredding process begins, the data is overwritten at the binary level and cannot be recovered by data recovery software.
+
+🤝 Contributing
+
+Contributions are welcome! Please look at the Issues tab for Phase 2 tasks regarding cache detection logic.
+
+📄 License
+
+Distributed under the MIT License. See LICENSE for more information.
