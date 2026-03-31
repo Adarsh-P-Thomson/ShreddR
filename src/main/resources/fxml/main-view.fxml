@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.ImageView?>
+
+<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.shreddr.shreddr.controller.MainController" stylesheets="@../css/style.css" styleClass="main-container">
+    <padding>
+        <Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/>
+    </padding>
+
+    <Label text="ShreddR" styleClass="title-label"/>
+    <Label text="Forensic-Grade Secure File Deletion" styleClass="subtitle-label"/>
+
+    <StackPane styleClass="drop-zone" prefHeight="250.0" prefWidth="400.0" fx:id="dropZone" onDragOver="#handleDragOver" onDragDropped="#handleDragDropped">
+        <VBox alignment="CENTER" spacing="10.0">
+             <Label text="📁" style="-fx-font-size: 48px;"/>
+             <Label text="Drag and Drop Files Here" styleClass="drop-text"/>
+             <Label text="or" styleClass="drop-subtext"/>
+             <Button text="Browse Files" onAction="#handleBrowseFiles" styleClass="primary-button"/>
+        </VBox>
+    </StackPane>
+    <Label fx:id="statusLabel" text="Ready to securely destroy data." styleClass="status-label"/>
+</VBox>

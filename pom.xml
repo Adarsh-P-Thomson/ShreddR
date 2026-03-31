@@ -27,10 +27,22 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>25</java.version>
+		<java.version>17</java.version>
 		<sentry.version>8.25.0</sentry.version>
 	</properties>
 	<dependencies>
+		<!-- JavaFX Dependencies -->
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-controls</artifactId>
+			<version>21.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-fxml</artifactId>
+			<version>21.0.2</version>
+		</dependency>
+
 		<dependency>
 			<groupId>io.sentry</groupId>
 			<artifactId>sentry-spring-boot-starter-jakarta</artifactId>

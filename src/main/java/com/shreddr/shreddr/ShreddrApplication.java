@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ShreddrApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ShreddrApplication.class, args);
+		javafx.application.Application.launch(JavaFxApplication.class, args);
 	}
 
 }
