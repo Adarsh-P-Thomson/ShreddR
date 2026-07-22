@@ -1,66 +1,89 @@
-.main-container {
-    -fx-background-color: #121212;
+.root {
     -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-font-smoothing-type: gray;
 }
 
-.title-label {
-    -fx-text-fill: #e0e0e0;
-    -fx-font-size: 32px;
-    -fx-font-weight: bold;
+.app-shell {
+    -fx-background-color: #f4f6f8;
 }
 
-.subtitle-label {
-    -fx-text-fill: #9e9e9e;
-    -fx-font-size: 14px;
-    -fx-padding: 0 0 20 0;
+.app-header {
+    -fx-background-color: #202a35;
+    -fx-padding: 16 24 16 24;
 }
+
+.app-mark {
+    -fx-background-color: #db4b43;
+    -fx-background-radius: 7;
+}
+
+.app-mark-text { -fx-text-fill: white; -fx-font-size: 22px; -fx-font-weight: bold; }
+.app-title { -fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold; }
+.app-tagline { -fx-text-fill: #aebbc8; -fx-font-size: 9px; -fx-font-weight: bold; }
+.header-badge { -fx-text-fill: #d8e3eb; -fx-font-size: 11px; -fx-background-color: #314151; -fx-background-radius: 12; -fx-padding: 5 10; }
+
+.sidebar {
+    -fx-background-color: #273340;
+    -fx-padding: 24 18 18 18;
+}
+
+.sidebar-section { -fx-text-fill: #91a5b7; -fx-font-size: 10px; -fx-font-weight: bold; }
+.sidebar-item { -fx-text-fill: #e8eef3; -fx-font-size: 12px; }
+.sidebar-copy { -fx-text-fill: #c6d1da; -fx-font-size: 12px; -fx-line-spacing: 2px; }
+.sidebar-separator .line { -fx-border-color: #3c4b59; }
+.warning-card { -fx-background-color: #3a3434; -fx-background-radius: 5; -fx-padding: 11; }
+.warning-title { -fx-text-fill: #f1b7b2; -fx-font-size: 12px; -fx-font-weight: bold; }
+.warning-copy { -fx-text-fill: #dec9c7; -fx-font-size: 11px; }
+.sidebar-footer { -fx-text-fill: #718598; -fx-font-size: 11px; }
+
+.utility-tabs { -fx-background-color: transparent; -fx-padding: 0; }
+.utility-tabs > .tab-header-area { -fx-padding: 14 22 0 22; -fx-background-color: #ffffff; }
+.utility-tabs > .tab-header-area > .tab-header-background { -fx-background-color: #ffffff; }
+.utility-tabs .tab { -fx-background-color: transparent; -fx-background-radius: 0; -fx-padding: 8 17 10 17; }
+.utility-tabs .tab .tab-label { -fx-text-fill: #64717e; -fx-font-size: 13px; -fx-font-weight: bold; }
+.utility-tabs .tab:selected { -fx-border-color: transparent transparent #db4b43 transparent; -fx-border-width: 0 0 3 0; }
+.utility-tabs .tab:selected .tab-label { -fx-text-fill: #26323e; }
+.utility-tabs > .tab-content-area { -fx-background-color: #f4f6f8; }
+
+.workspace { -fx-padding: 24 26 20 26; }
+.page-title { -fx-text-fill: #273340; -fx-font-size: 23px; -fx-font-weight: bold; }
+.page-description { -fx-text-fill: #6b7884; -fx-font-size: 12px; }
+.queue-count { -fx-text-fill: #64717e; -fx-font-size: 12px; }
+
+.button { -fx-cursor: hand; -fx-font-family: "Segoe UI"; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 4; -fx-padding: 8 13; }
+.secondary-button { -fx-background-color: #e6edf2; -fx-text-fill: #344351; -fx-border-color: #cbd5dd; -fx-border-radius: 4; }
+.secondary-button:hover { -fx-background-color: #dce7ee; }
+.quiet-button { -fx-background-color: transparent; -fx-text-fill: #586a78; }
+.quiet-button:hover { -fx-background-color: #e8edf1; }
+.danger-button { -fx-background-color: #d94942; -fx-text-fill: white; }
+.danger-button:hover { -fx-background-color: #c93e38; }
+.button:disabled { -fx-opacity: 0.5; }
 
 .drop-zone {
-    -fx-background-color: #1e1e1e;
-    -fx-border-color: #333333;
-    -fx-border-width: 2px;
-    -fx-border-radius: 10px;
-    -fx-background-radius: 10px;
-    -fx-border-style: dashed;
-    -fx-cursor: hand;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 5;
+    -fx-border-color: #b9c8d2;
+    -fx-border-radius: 5;
+    -fx-border-style: segments(5, 4);
+    -fx-padding: 12;
 }
+.drop-zone:hover { -fx-background-color: #f7fafc; -fx-border-color: #7e9aac; }
+.drop-symbol { -fx-text-fill: #d94942; -fx-font-size: 31px; -fx-font-weight: normal; }
+.drop-text { -fx-text-fill: #354351; -fx-font-size: 13px; -fx-font-weight: bold; }
+.drop-subtext { -fx-text-fill: #788795; -fx-font-size: 11px; }
 
-.drop-zone:hover {
-    -fx-border-color: #555555;
-    -fx-background-color: #242424;
-}
+.content-table { -fx-background-color: white; -fx-border-color: #d8e0e5; -fx-border-radius: 4; -fx-background-radius: 4; }
+.content-table .column-header-background { -fx-background-color: #edf1f4; }
+.content-table .column-header, .content-table .filler { -fx-background-color: #edf1f4; -fx-size: 34; -fx-border-color: transparent transparent #d8e0e5 transparent; }
+.content-table .column-header .label { -fx-text-fill: #52616e; -fx-font-size: 11px; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; }
+.content-table .table-cell { -fx-text-fill: #354351; -fx-font-size: 12px; -fx-border-color: transparent transparent #edf1f4 transparent; -fx-padding: 0 8; }
+.content-table .table-row-cell { -fx-background-color: white; -fx-cell-size: 39; }
+.content-table .table-row-cell:filled:selected { -fx-background-color: #dfeaf1; }
+.content-table .placeholder .label, .table-placeholder { -fx-text-fill: #82909c; -fx-font-size: 13px; }
 
-.drop-text {
-    -fx-text-fill: #e0e0e0;
-    -fx-font-size: 18px;
-    -fx-font-weight: bold;
-}
-
-.drop-subtext {
-    -fx-text-fill: #757575;
-    -fx-font-size: 12px;
-}
-
-.primary-button {
-    -fx-background-color: #b71c1c; /* A warning red since it's a shredder */
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-padding: 10 20 10 20;
-    -fx-background-radius: 5px;
-    -fx-cursor: hand;
-}
-
-.primary-button:hover {
-    -fx-background-color: #d32f2f;
-}
-
-.primary-button:pressed {
-    -fx-background-color: #c62828;
-}
-
-.status-label {
-    -fx-text-fill: #ab4040;
-    -fx-font-size: 12px;
-    -fx-padding: 10 0 0 0;
-}
+.action-panel { -fx-padding: 16 0 0 0; }
+.progress-bar { -fx-accent: #d94942; }
+.progress-bar > .track { -fx-background-color: #dfe6ea; -fx-background-radius: 4; }
+.progress-bar > .bar { -fx-background-radius: 4; -fx-background-insets: 0; }
+.progress-label { -fx-text-fill: #74818c; -fx-font-size: 11px; }
+.status-label { -fx-text-fill: #5d6b77; -fx-font-size: 12px; }

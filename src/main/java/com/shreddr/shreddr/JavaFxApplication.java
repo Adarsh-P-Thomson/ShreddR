@@ -29,12 +29,14 @@ public class JavaFxApplication extends Application {
         loader.setControllerFactory(applicationContext::getBean);
         
         Parent root = loader.load();
-        Scene scene = new Scene(root, 600, 450);
+        Scene scene = new Scene(root, 1060, 720);
         scene.setFill(Color.TRANSPARENT);
 
-        stage.setTitle("ShreddR - Forensic Erasure");
+        stage.setTitle("ShreddR — Secure Erasure Utility");
         stage.setScene(scene);
-        stage.setResizable(false);
+        stage.setMinWidth(920);
+        stage.setMinHeight(630);
+        stage.setResizable(true);
         stage.show();
     }
 

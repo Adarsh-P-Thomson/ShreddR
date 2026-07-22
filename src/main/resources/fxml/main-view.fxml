@@ -1,25 +1,159 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.shreddr.shreddr.controller.MainController" stylesheets="@../css/style.css" styleClass="main-container">
-    <padding>
-        <Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/>
-    </padding>
-
-    <Label text="ShreddR" styleClass="title-label"/>
-    <Label text="Forensic-Grade Secure File Deletion" styleClass="subtitle-label"/>
-
-    <StackPane styleClass="drop-zone" prefHeight="250.0" prefWidth="400.0" fx:id="dropZone" onDragOver="#handleDragOver" onDragDropped="#handleDragDropped">
-        <VBox alignment="CENTER" spacing="10.0">
-             <Label text="📁" style="-fx-font-size: 48px;"/>
-             <Label text="Drag and Drop Files Here" styleClass="drop-text"/>
-             <Label text="or" styleClass="drop-subtext"/>
-             <Button text="Browse Files" onAction="#handleBrowseFiles" styleClass="primary-button"/>
+<BorderPane prefHeight="720.0" prefWidth="1060.0" stylesheets="@../css/style.css" styleClass="app-shell" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.shreddr.shreddr.controller.MainController">
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="app-header">
+            <VBox alignment="CENTER" prefHeight="38.0" prefWidth="38.0" styleClass="app-mark">
+                <Label text="S" styleClass="app-mark-text" />
+            </VBox>
+            <VBox spacing="2.0">
+                <Label text="ShreddR" styleClass="app-title" />
+                <Label text="SECURE ERASURE UTILITY" styleClass="app-tagline" />
+            </VBox>
+            <HBox HBox.hgrow="ALWAYS" />
+            <Label text="3-pass protection" styleClass="header-badge" />
+        </HBox>
+    </top>
+    <left>
+        <VBox prefWidth="208.0" spacing="18.0" styleClass="sidebar">
+            <VBox spacing="7.0">
+                <Label text="SECURE DELETION" styleClass="sidebar-section" />
+                <Label text="•  Zero-fill pass" styleClass="sidebar-item" />
+                <Label text="•  One-fill pass" styleClass="sidebar-item" />
+                <Label text="•  Random-data pass" styleClass="sidebar-item" />
+            </VBox>
+            <Separator styleClass="sidebar-separator" />
+            <VBox spacing="7.0">
+                <Label text="HOW IT WORKS" styleClass="sidebar-section" />
+                <Label text="Add files or folders to a queue, review them, then confirm secure erasure." wrapText="true" styleClass="sidebar-copy" />
+            </VBox>
+            <VBox VBox.vgrow="ALWAYS" />
+            <VBox spacing="6.0" styleClass="warning-card">
+                <Label text="Permanent action" styleClass="warning-title" />
+                <Label text="Shredded data cannot be restored from the Recycle Bin." wrapText="true" styleClass="warning-copy" />
+            </VBox>
+            <Label text="ShreddR for Windows" styleClass="sidebar-footer" />
         </VBox>
-    </StackPane>
-    <Label fx:id="statusLabel" text="Ready to securely destroy data." styleClass="status-label"/>
-</VBox>
+    </left>
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE" styleClass="utility-tabs">
+            <tabs>
+                <Tab text="Shred files">
+                    <content>
+                        <BorderPane styleClass="workspace">
+                            <top>
+                                <VBox spacing="16.0">
+                                    <VBox spacing="4.0">
+                                        <Label text="Shred files and folders" styleClass="page-title" />
+                                        <Label text="Build a queue first. Nothing is touched until you confirm the final action." styleClass="page-description" />
+                                    </VBox>
+                                    <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                        <Button mnemonicParsing="false" onAction="#handleBrowseFiles" text="Add files" styleClass="secondary-button" />
+                                        <Button mnemonicParsing="false" onAction="#handleBrowseFolder" text="Add folder" styleClass="secondary-button" />
+                                        <Button fx:id="removeButton" mnemonicParsing="false" onAction="#handleRemoveSelected" text="Remove" styleClass="quiet-button" />
+                                        <Button fx:id="clearButton" mnemonicParsing="false" onAction="#handleClearQueue" text="Clear queue" styleClass="quiet-button" />
+                                        <HBox HBox.hgrow="ALWAYS" />
+                                        <Label fx:id="queueSummaryLabel" styleClass="queue-count" />
+                                    </HBox>
+                                    <StackPane fx:id="dropZone" minHeight="78.0" onDragDropped="#handleDragDropped" onDragOver="#handleDragOver" styleClass="drop-zone">
+                                        <HBox alignment="CENTER" spacing="12.0">
+                                            <Label text="+" styleClass="drop-symbol" />
+                                            <VBox spacing="2.0">
+                                                <Label text="Drop files or folders here" styleClass="drop-text" />
+                                                <Label text="They will be added to the queue for review" styleClass="drop-subtext" />
+                                            </VBox>
+                                        </HBox>
+                                    </StackPane>
+                                </VBox>
+                            </top>
+                            <center>
+                                <TableView fx:id="queueTable" styleClass="content-table">
+                                    <columns>
+                                        <TableColumn fx:id="queueNameColumn" prefWidth="170.0" text="Name" />
+                                        <TableColumn fx:id="queueTypeColumn" prefWidth="80.0" text="Type" />
+                                        <TableColumn fx:id="queueLocationColumn" prefWidth="275.0" text="Location" />
+                                        <TableColumn fx:id="queueSizeColumn" prefWidth="125.0" text="Size" />
+                                    </columns>
+                                    <placeholder><Label text="Your shredding queue is empty" styleClass="table-placeholder" /></placeholder>
+                                    <BorderPane.margin><Insets top="16.0" /></BorderPane.margin>
+                                </TableView>
+                            </center>
+                            <bottom>
+                                <VBox spacing="10.0" styleClass="action-panel">
+                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                        <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" prefHeight="7.0" progress="0.0" HBox.hgrow="ALWAYS" />
+                                        <Label fx:id="progressLabel" styleClass="progress-label" />
+                                    </HBox>
+                                    <HBox alignment="CENTER_LEFT">
+                                        <Label fx:id="statusLabel" wrapText="true" styleClass="status-label" HBox.hgrow="ALWAYS" />
+                                        <HBox HBox.hgrow="ALWAYS" />
+                                        <Button fx:id="cancelButton" mnemonicParsing="false" onAction="#handleCancelShredding" text="Cancel" styleClass="quiet-button" />
+                                        <Button fx:id="shredButton" mnemonicParsing="false" onAction="#handleStartShredding" text="Securely erase" styleClass="danger-button" />
+                                    </HBox>
+                                </VBox>
+                            </bottom>
+                        </BorderPane>
+                    </content>
+                </Tab>
+                <Tab text="System cleaner">
+                    <content>
+                        <BorderPane styleClass="workspace">
+                            <top>
+                                <VBox spacing="16.0">
+                                    <VBox spacing="4.0">
+                                        <Label text="System cleaner" styleClass="page-title" />
+                                        <Label text="Find common browser and developer-tool caches. Selected locations are added to the shred queue; they are never removed automatically." wrapText="true" styleClass="page-description" />
+                                    </VBox>
+                                    <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                        <Button fx:id="scanButton" mnemonicParsing="false" onAction="#handleScanCleaner" text="Scan for caches" styleClass="secondary-button" />
+                                        <Button mnemonicParsing="false" onAction="#handleSelectAllCleaner" text="Select all / none" styleClass="quiet-button" />
+                                        <HBox HBox.hgrow="ALWAYS" />
+                                        <Label fx:id="cleanerSummaryLabel" text="Scan to see cleanable locations." styleClass="queue-count" />
+                                    </HBox>
+                                </VBox>
+                            </top>
+                            <center>
+                                <TableView fx:id="cleanerTable" styleClass="content-table">
+                                    <columns>
+                                        <TableColumn fx:id="cleanerSelectedColumn" editable="true" prefWidth="55.0" text="Add" />
+                                        <TableColumn fx:id="cleanerNameColumn" prefWidth="275.0" text="Location" />
+                                        <TableColumn fx:id="cleanerCategoryColumn" prefWidth="130.0" text="Category" />
+                                        <TableColumn fx:id="cleanerItemsColumn" prefWidth="110.0" text="Contents" />
+                                        <TableColumn fx:id="cleanerSizeColumn" prefWidth="100.0" text="Size" />
+                                        <TableColumn fx:id="cleanerStatusColumn" prefWidth="115.0" text="Status" />
+                                    </columns>
+                                    <placeholder><Label text="No scan results yet" styleClass="table-placeholder" /></placeholder>
+                                    <BorderPane.margin><Insets top="16.0" /></BorderPane.margin>
+                                </TableView>
+                            </center>
+                            <bottom>
+                                <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="action-panel">
+                                    <Label text="Close browser and developer apps before erasing their cache files." wrapText="true" styleClass="status-label" HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="addCleanerButton" mnemonicParsing="false" onAction="#handleAddCleanerTargets" text="Add selected to queue" styleClass="danger-button" />
+                                </HBox>
+                            </bottom>
+                        </BorderPane>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+</BorderPane>
