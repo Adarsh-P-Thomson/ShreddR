@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Separator?>
@@ -120,11 +121,11 @@
                                 <VBox spacing="16.0">
                                     <VBox spacing="4.0">
                                         <Label text="System cleaner" styleClass="page-title" />
-                                        <Label text="Find common browser and developer-tool caches. Selected locations are added to the shred queue; they are never removed automatically." wrapText="true" styleClass="page-description" />
+                                        <Label text="Clean common browser and developer-tool caches independently from secure erasure. Choose a recoverable Recycle Bin cleanup or a normal delete." wrapText="true" styleClass="page-description" />
                                     </VBox>
                                     <HBox alignment="CENTER_LEFT" spacing="8.0">
                                         <Button fx:id="scanButton" mnemonicParsing="false" onAction="#handleScanCleaner" text="Scan for caches" styleClass="secondary-button" />
-                                        <Button mnemonicParsing="false" onAction="#handleSelectAllCleaner" text="Select all / none" styleClass="quiet-button" />
+                                        <Button fx:id="selectCleanerButton" mnemonicParsing="false" onAction="#handleSelectAllCleaner" text="Select all / none" styleClass="quiet-button" />
                                         <HBox HBox.hgrow="ALWAYS" />
                                         <Label fx:id="cleanerSummaryLabel" text="Scan to see cleanable locations." styleClass="queue-count" />
                                     </HBox>
@@ -133,7 +134,7 @@
                             <center>
                                 <TableView fx:id="cleanerTable" styleClass="content-table">
                                     <columns>
-                                        <TableColumn fx:id="cleanerSelectedColumn" editable="true" prefWidth="55.0" text="Add" />
+                                        <TableColumn fx:id="cleanerSelectedColumn" editable="true" prefWidth="55.0" text="Clean" />
                                         <TableColumn fx:id="cleanerNameColumn" prefWidth="275.0" text="Location" />
                                         <TableColumn fx:id="cleanerCategoryColumn" prefWidth="130.0" text="Category" />
                                         <TableColumn fx:id="cleanerItemsColumn" prefWidth="110.0" text="Contents" />
@@ -146,8 +147,12 @@
                             </center>
                             <bottom>
                                 <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="action-panel">
-                                    <Label text="Close browser and developer apps before erasing their cache files." wrapText="true" styleClass="status-label" HBox.hgrow="ALWAYS" />
-                                    <Button fx:id="addCleanerButton" mnemonicParsing="false" onAction="#handleAddCleanerTargets" text="Add selected to queue" styleClass="danger-button" />
+                                    <VBox spacing="2.0" HBox.hgrow="ALWAYS">
+                                        <Label text="Close browser and developer apps before cleaning their cache files." wrapText="true" styleClass="status-label" />
+                                        <Label text="Cache cleanup never uses the three-pass shredding engine." wrapText="true" styleClass="drop-subtext" />
+                                    </VBox>
+                                    <ChoiceBox fx:id="cleanerModeChoice" prefWidth="180.0" styleClass="cleaner-choice" />
+                                    <Button fx:id="cleanButton" mnemonicParsing="false" onAction="#handleCleanSelected" text="Clean selected" styleClass="danger-button" />
                                 </HBox>
                             </bottom>
                         </BorderPane>

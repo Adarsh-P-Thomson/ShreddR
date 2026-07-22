@@ -2,8 +2,10 @@ package com.shreddr.shreddr.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Service;
 
+import java.awt.Desktop;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -13,12 +15,21 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @Service
 public class SystemCleanerServiceImpl implements SystemCleanerService {
 
     private static final Logger logger = LoggerFactory.getLogger(SystemCleanerServiceImpl.class);
+    private final ExecutorService cleanerWorker = Executors.newSingleThreadExecutor(runnable -> {
+        Thread thread = new Thread(runnable, "shreddr-cleaner-worker");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     @Override
     public List<CleanerTarget> scan() {
@@ -28,7 +39,6 @@ public class SystemCleanerServiceImpl implements SystemCleanerService {
         List<Candidate> candidates = new ArrayList<>(List.of(
                 new Candidate("Windows", "Temporary files", Path.of(System.getProperty("java.io.tmpdir")), List.of()),
                 new Candidate("Windows", "Windows Prefetch", windowsPath("Prefetch"), List.of()),
-                new Candidate("Windows", "Recycle Bin", recycleBinPath(), List.of()),
                 new Candidate("Browsers", "Google Chrome cache", localAppData.resolve("Google/Chrome/User Data/Default/Cache"), List.of("chrome")),
                 new Candidate("Browsers", "Google Chrome code cache", localAppData.resolve("Google/Chrome/User Data/Default/Code Cache"), List.of("chrome")),
                 new Candidate("Browsers", "Microsoft Edge cache", localAppData.resolve("Microsoft/Edge/User Data/Default/Cache"), List.of("msedge")),
@@ -49,6 +59,71 @@ public class SystemCleanerServiceImpl implements SystemCleanerService {
             }
         }
         return results;
+    }
+
+    @Override
+    public CompletableFuture<CleanerResult> clean(List<CleanerTarget> targets, CleanerDeletionMode mode,
+                                                   Consumer<CleanerProgress> progressListener) {
+        List<CleanerTarget> work = List.copyOf(targets);
+        return CompletableFuture.supplyAsync(() -> runCleaner(work, mode, progressListener), cleanerWorker);
+    }
+
+    private CleanerResult runCleaner(List<CleanerTarget> targets, CleanerDeletionMode mode,
+                                     Consumer<CleanerProgress> progressListener) {
+        List<String> failures = new ArrayList<>();
+        long cleanedBytes = 0;
+        int complete = 0;
+        Desktop desktop = recycleBinSupported() ? Desktop.getDesktop() : null;
+
+        for (CleanerTarget target : targets) {
+            progressListener.accept(new CleanerProgress(complete, targets.size(), "Cleaning " + target.getName() + "…"));
+            try {
+                if (!Files.exists(target.getPath())) {
+                    continue;
+                }
+                if (mode == CleanerDeletionMode.RECYCLE_BIN) {
+                    if (desktop == null) {
+                        throw new IOException("The Windows Recycle Bin is not available. Choose normal delete instead.");
+                    }
+                    if (!desktop.moveToTrash(target.getPath().toFile())) {
+                        throw new IOException("Windows could not move this location to the Recycle Bin");
+                    }
+                } else {
+                    deleteNormally(target.getPath());
+                }
+                complete++;
+                cleanedBytes += target.getTotalBytes();
+            } catch (Exception error) {
+                logger.warn("Could not clean {}", target.getPath(), error);
+                failures.add(target.getName() + ": " + error.getMessage());
+            }
+        }
+        String message = failures.isEmpty()
+                ? "Finished cleaning " + complete + " location" + (complete == 1 ? "." : "s.")
+                : "Finished with " + failures.size() + " location" + (failures.size() == 1 ? " requiring attention." : "s requiring attention.");
+        progressListener.accept(new CleanerProgress(complete, targets.size(), message));
+        return new CleanerResult(complete, cleanedBytes, failures);
+    }
+
+    private static boolean recycleBinSupported() {
+        return Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.MOVE_TO_TRASH);
+    }
+
+    private static void deleteNormally(Path root) throws IOException {
+        Files.walkFileTree(root, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path directory, IOException error) throws IOException {
+                if (error != null) throw error;
+                Files.delete(directory);
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 
     private void addFirefoxCaches(List<Candidate> candidates, Path profilesRoot) {
@@ -110,9 +185,9 @@ public class SystemCleanerServiceImpl implements SystemCleanerService {
         return Path.of(systemRoot == null || systemRoot.isBlank() ? "C:/Windows" : systemRoot).resolve(child);
     }
 
-    private static Path recycleBinPath() {
-        String systemDrive = System.getenv("SystemDrive");
-        return Path.of(systemDrive == null || systemDrive.isBlank() ? "C:/" : systemDrive + "/").resolve("$Recycle.Bin");
+    @PreDestroy
+    void shutdown() {
+        cleanerWorker.shutdownNow();
     }
 
     private record Candidate(String category, String name, Path path, List<String> processes) { }

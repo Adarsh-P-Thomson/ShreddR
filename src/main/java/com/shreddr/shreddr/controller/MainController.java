@@ -1,6 +1,8 @@
 package com.shreddr.shreddr.controller;
 
 import com.shreddr.shreddr.service.CleanerTarget;
+import com.shreddr.shreddr.service.CleanerDeletionMode;
+import com.shreddr.shreddr.service.CleanerResult;
 import com.shreddr.shreddr.service.FileShreddingService;
 import com.shreddr.shreddr.service.ShredProgress;
 import com.shreddr.shreddr.service.ShredResult;
@@ -16,10 +18,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.util.StringConverter;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.StackPane;
@@ -54,7 +58,9 @@ public class MainController {
     @FXML private Button shredButton;
     @FXML private Button cancelButton;
     @FXML private Button scanButton;
-    @FXML private Button addCleanerButton;
+    @FXML private Button cleanButton;
+    @FXML private Button selectCleanerButton;
+    @FXML private ChoiceBox<CleanerDeletionMode> cleanerModeChoice;
     @FXML private TableView<CleanerTarget> cleanerTable;
     @FXML private TableColumn<CleanerTarget, Boolean> cleanerSelectedColumn;
     @FXML private TableColumn<CleanerTarget, String> cleanerNameColumn;
@@ -69,6 +75,7 @@ public class MainController {
     private final FileShreddingService shreddingService;
     private final SystemCleanerService cleanerService;
     private boolean running;
+    private boolean cleanerRunning;
 
     public MainController(FileShreddingService shreddingService, SystemCleanerService cleanerService) {
         this.shreddingService = shreddingService;
@@ -81,9 +88,16 @@ public class MainController {
         configureCleanerTable();
         queueTable.setItems(queue);
         cleanerTable.setItems(cleanerTargets);
+        cleanerModeChoice.setItems(FXCollections.observableArrayList(CleanerDeletionMode.values()));
+        cleanerModeChoice.setValue(CleanerDeletionMode.RECYCLE_BIN);
+        cleanerModeChoice.setConverter(new StringConverter<>() {
+            @Override public String toString(CleanerDeletionMode mode) { return mode == null ? "" : mode.getDisplayName(); }
+            @Override public CleanerDeletionMode fromString(String value) { return null; }
+        });
         queue.addListener((javafx.collections.ListChangeListener<QueueEntry>) change -> updateQueuePresentation());
         queueTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> updateButtons());
         updateQueuePresentation();
+        updateCleanerButtons();
         statusLabel.setText("Ready. Add files or folders to begin.");
     }
 
@@ -160,6 +174,7 @@ public class MainController {
 
     @FXML
     public void handleScanCleaner(ActionEvent event) {
+        if (cleanerRunning) return;
         scanButton.setDisable(true);
         cleanerSummaryLabel.setText("Scanning common cache locations…");
         CompletableFuture.supplyAsync(cleanerService::scan).whenComplete((found, error) -> Platform.runLater(() -> {
@@ -169,32 +184,57 @@ public class MainController {
                 return;
             }
             cleanerTargets.setAll(found);
+            cleanerTargets.forEach(target -> target.selectedProperty().addListener((observable, oldValue, newValue) -> updateCleanerButtons()));
             long bytes = found.stream().mapToLong(CleanerTarget::getTotalBytes).sum();
             cleanerSummaryLabel.setText(found.isEmpty()
                     ? "No supported cache locations were found on this PC."
                     : found.size() + " cleanable locations found — " + formatBytes(bytes));
+            updateCleanerButtons();
         }));
     }
 
     @FXML
     public void handleSelectAllCleaner(ActionEvent event) {
+        if (cleanerRunning) return;
         boolean select = cleanerTargets.stream().anyMatch(target -> !target.isSelected());
         cleanerTargets.forEach(target -> target.setSelected(select));
         cleanerTable.refresh();
+        updateCleanerButtons();
     }
 
     @FXML
-    public void handleAddCleanerTargets(ActionEvent event) {
+    public void handleCleanSelected(ActionEvent event) {
+        if (cleanerRunning) return;
         List<Path> selected = cleanerTargets.stream().filter(CleanerTarget::isSelected)
                 .filter(target -> target.getAvailability().equals("Ready")).map(CleanerTarget::getPath).toList();
         long blocked = cleanerTargets.stream().filter(CleanerTarget::isSelected)
                 .filter(target -> !target.getAvailability().equals("Ready")).count();
-        addPaths(selected);
-        if (blocked > 0) {
-            statusLabel.setText(blocked + " selected location" + (blocked == 1 ? " is" : "s are") + " in use. Close the app and scan again.");
-        } else if (!selected.isEmpty()) {
-            statusLabel.setText(selected.size() + " cache location" + (selected.size() == 1 ? " added to" : "s added to") + " the queue.");
+        if (selected.isEmpty()) {
+            cleanerSummaryLabel.setText(blocked > 0
+                    ? "Selected locations are in use. Close the related apps, then scan again."
+                    : "Select one or more cache locations to clean.");
+            return;
         }
+        if (blocked > 0) {
+            cleanerSummaryLabel.setText(blocked + " selected location" + (blocked == 1 ? " is" : "s are") + " in use and will be skipped.");
+        }
+
+        CleanerDeletionMode mode = cleanerModeChoice.getValue();
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Confirm cache cleanup");
+        confirmation.setHeaderText("Clean " + selected.size() + " cache location" + (selected.size() == 1 ? "?" : "s?"));
+        confirmation.setContentText(mode == CleanerDeletionMode.RECYCLE_BIN
+                ? "The selected cache folders will be moved to the Windows Recycle Bin, where they can be restored."
+                : "The selected cache folders will be deleted normally. Their contents will not be securely overwritten.");
+        confirmation.getButtonTypes().setAll(ButtonType.CANCEL, new ButtonType("Clean now", ButtonBar.ButtonData.OK_DONE));
+        if (confirmation.showAndWait().orElse(ButtonType.CANCEL).getButtonData() != ButtonBar.ButtonData.OK_DONE) return;
+
+        List<CleanerTarget> cleanerSelection = cleanerTargets.stream().filter(CleanerTarget::isSelected)
+                .filter(target -> target.getAvailability().equals("Ready")).toList();
+        cleanerRunning = true;
+        updateCleanerButtons();
+        cleanerService.clean(cleanerSelection, mode, progress -> Platform.runLater(() ->
+                cleanerSummaryLabel.setText(progress.message()))).whenComplete(this::finishCleaning);
     }
 
     private void addPaths(Collection<Path> paths) {
@@ -253,6 +293,22 @@ public class MainController {
         cleanerStatusColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getAvailability()));
     }
 
+    private void finishCleaning(CleanerResult result, Throwable error) {
+        Platform.runLater(() -> {
+            cleanerRunning = false;
+            if (error != null) {
+                cleanerSummaryLabel.setText("The cleanup could not be completed.");
+            } else {
+                cleanerTargets.removeIf(target -> !Files.exists(target.getPath()));
+                cleanerSummaryLabel.setText(result.failures().isEmpty()
+                        ? "Finished cleaning " + result.cleanedLocations() + " location" + (result.cleanedLocations() == 1 ? "." : "s.")
+                        : "Finished with " + result.failures().size() + " location(s) requiring attention.");
+                if (!result.failures().isEmpty()) showCleanerFailures(result.failures());
+            }
+            updateCleanerButtons();
+        });
+    }
+
     private void updateQueuePresentation() {
         long fileCount = queue.size();
         queueSummaryLabel.setText(fileCount == 0 ? "No items queued" : fileCount + " item" + (fileCount == 1 ? " queued" : "s queued"));
@@ -268,10 +324,26 @@ public class MainController {
         queueTable.setDisable(running);
     }
 
+    private void updateCleanerButtons() {
+        scanButton.setDisable(cleanerRunning);
+        selectCleanerButton.setDisable(cleanerRunning || cleanerTargets.isEmpty());
+        cleanButton.setDisable(cleanerRunning || cleanerTargets.stream().noneMatch(CleanerTarget::isSelected));
+        cleanerModeChoice.setDisable(cleanerRunning);
+        cleanerTable.setDisable(cleanerRunning);
+    }
+
     private void showFailures(List<String> failures) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle("Some items need attention");
         alert.setHeaderText("A few files could not be securely removed.");
+        alert.setContentText(String.join("\n", failures.stream().limit(6).toList()));
+        alert.show();
+    }
+
+    private void showCleanerFailures(List<String> failures) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Some cache locations need attention");
+        alert.setHeaderText("A few selected locations could not be cleaned.");
         alert.setContentText(String.join("\n", failures.stream().limit(6).toList()));
         alert.show();
     }

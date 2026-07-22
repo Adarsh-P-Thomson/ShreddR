@@ -18,13 +18,14 @@ ShreddR is a desktop application built with Java 17 LTS, Spring Boot, and JavaFX
 -   **Metadata Obfuscation:** Renames files to random UUIDs before unlinking to hide file names from filesystem logs.
 -   **Non-Blocking I/O:** Heavy operations run on background threads to keep the UI responsive.
 
-### Phase 2: Secure System Cleaner (Roadmap)
+### Phase 2: System Cleaner
 
 -   **Automated Cache Detection:** Scans for sensitive cache files in:
-    -   **Browsers:** Chrome, Firefox, Edge (History, Cookies, Cache).
+    -   **Browsers:** Chrome, Firefox, Edge caches.
     -   **Dev Tools:** VS Code, IntelliJ, Docker.
-    -   **System:** Windows Temp, Prefetch, Recycle Bin.
--   **Smart Locking:** Detects if target applications are open to prevent file lock errors.
+    -   **System:** Windows Temp and Prefetch.
+-   **Smart Locking:** Marks browser and developer-tool caches as unavailable while their owner app is open.
+-   **Separate cleanup workflow:** Selected caches can be moved to the Windows Recycle Bin for recovery or deleted normally. Cache cleanup never uses the forensic overwrite engine.
 
 ---
 
@@ -72,6 +73,8 @@ ShreddR is a desktop application built with Java 17 LTS, Spring Boot, and JavaFX
 > **Please Use With Caution.**
 >
 > Files processed by ShreddR are permanently destroyed. Unlike the Windows Recycle Bin, there is no "Restore" function. Once the shredding process begins, the data is overwritten at the binary level and cannot be recovered by data recovery software.
+>
+> **Storage note:** Multi-pass overwriting is best-effort on SSDs and journaled or copy-on-write file systems; it cannot provide a forensic guarantee on every storage device.
 
 ---
 
